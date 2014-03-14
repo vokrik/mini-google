@@ -5,8 +5,11 @@
  */
 package mini.google;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 /**
  *
@@ -16,7 +19,7 @@ public class Crawler {
 
     private String initUrl;
     private Queue<String> linksToCrawl;
-    private String [][] linksIndex ;
+    private Map<String, String[]>  linksIndex ;
     private int counter;
     private int maxPages;
     private Database database;
@@ -27,6 +30,7 @@ public class Crawler {
 	this.maxPages = maxPages;
 	this.counter = 0;
 	this.database = database;
+	this.linksIndex = new HashMap();
     }
     /* 
      * @desc Starts crawling
@@ -40,10 +44,15 @@ public class Crawler {
 
 	    Spider spider = new Spider(url);
 	    String[] links = spider.getLinks();
-	    String text = spider.getText();
+	    Set<String> keyWords = spider.getKeyWords();
 
-	    this.saveSource(url, text);
-	    this.addToIndex(url, links);
+	    this.saveKeyWords(url, keyWords);
+	    try{
+		this.addToIndex(url, links);
+	    } catch (Exception ex){
+		System.out.println(ex);
+		System.exit(1);
+	    }
 	    url = this.getNextUrl();
 	}
 
@@ -52,24 +61,37 @@ public class Crawler {
     /*
      *  Přidá do fronty links a uloží do indexu [][] url a links;
      */
-    protected void addToIndex(String url, String[] links) {
+    protected void addToIndex(String url, String[] links)throws Exception{
+	
+	if(this.linksIndex.containsKey(url)){
+	    throw new Exception("Trying to save links for page, that was already crawled");
+	}
+	
+	this.linksIndex.put(url, links);// saves url and links to the index
+	
+	for(String link : links){
+	    if(this.linksIndex.containsKey(link)) { // If we have link in the index, it has been crawled so we don't put it into the queue
+		continue;
+	    }
+	    this.linksToCrawl.add(link); 
+	}
     }
 
     /*
-     * POkud counter < maxPages vratí url z fronty, jinak NULL
+     * Pokud counter < maxPages vratí url z fronty, jinak NULL
      */
     protected String getNextUrl() {
 	if (counter > maxPages) {
 	    return null;
 	}
 
-	String url = "";
-
-	this.counter++;
-	return url;
+	this.counter++; // going to crawl another site
+	return this.linksToCrawl.poll(); 
     }
     
-    protected void saveSource(String url, String source){
+
+    
+    protected void saveKeyWords(String url, Set<String> keyWords){
 	
     }
 
