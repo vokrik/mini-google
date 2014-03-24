@@ -5,6 +5,8 @@
  */
 package mini.google;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -19,7 +21,7 @@ public class Crawler {
 
     private String initUrl;
     private Queue<String> linksToCrawl;
-    private Map<String, String[]>  linksIndex ;
+    private Map<String, ArrayList<String>>  linksIndex ;
     private int counter;
     private int maxPages;
     private Database database;
@@ -36,14 +38,14 @@ public class Crawler {
      * @desc Starts crawling
      */
 
-    public void crawl() {
+    public void crawl() throws IOException {
 
 	String url = this.initUrl;
 
 	while (url != null) {
 
 	    Spider spider = new Spider(url);
-	    String[] links = spider.getLinks();
+	    ArrayList<String> links = spider.getLinks();
 	    Set<String> keyWords = spider.getKeyWords();
 
 	    this.saveKeyWords(url, keyWords);
@@ -61,7 +63,7 @@ public class Crawler {
     /*
      *  Přidá do fronty links a uloží do indexu [][] url a links;
      */
-    protected void addToIndex(String url, String[] links)throws Exception{
+    protected void addToIndex(String url, ArrayList<String> links)throws Exception{
 	
 	if(this.linksIndex.containsKey(url)){
 	    throw new Exception("Trying to save links for page, that was already crawled");
@@ -96,3 +98,4 @@ public class Crawler {
     }
 
 }
+
