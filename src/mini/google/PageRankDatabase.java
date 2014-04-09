@@ -3,17 +3,24 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package mini.google;
+
+import java.lang.reflect.Array;
+import java.util.Set;
 
 /**
  *
  * @author Martin
  */
-public class Database extends Object {
+public class PageRankDatabase extends Database {
     
     
+    void add(){
+        
+    }
     
-    
-//    public void addToIndex();
-//    public void addToWords();
+//    Array sort(Set<String> documents){
+//        
+//    }
 }

@@ -19,9 +19,8 @@ public class MiniGoogle {
      */
     public static void main(String[] args) throws IOException {
 	Database db = new Database();
-	Crawler c = new Crawler("https://cs.wikipedia.org/wiki/Hlavn%C3%AD_strana", 50, db);
+	Crawler c = new Crawler("https://cs.wikipedia.org/wiki/Hlavn%C3%AD_strana", 2, db);
 	c.crawl();
-	
 		
     }
     

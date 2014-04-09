@@ -8,6 +8,7 @@ package mini.google;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import org.jsoup.Jsoup;
@@ -21,7 +22,7 @@ import org.jsoup.select.Elements;
  */
 public final class Spider {
 
-    private ArrayList<String> links;
+    private Set<String> links;
     private final String text;
 
     public Spider(String url) throws IOException {
@@ -35,7 +36,7 @@ public final class Spider {
     }
 
     protected void parseLinks(Document doc) {
-        this.links = new ArrayList<>();
+        this.links = new TreeSet<>();
         Elements docLinks = doc.select("a[href]");
         for (Element link : docLinks) {
             this.links.add(link.attr("abs:href"));
@@ -47,7 +48,7 @@ public final class Spider {
         return doc.head().text() + " " + doc.body().text();
     }
 
-    public ArrayList<String> getLinks() {
+    public Set<String> getLinks() {
         return links;
     }
 
@@ -56,7 +57,7 @@ public final class Spider {
     }
 
     public Set<String> getKeyWords() {
-	String[] text = this.text.replaceAll("[.,;]", "").toLowerCase().split(" ");;
+	String[] text = this.text.replaceAll("[?.&,; %=·(){}“|\\/…•„\":]", " ").toLowerCase().split(" ");;
 	
         Set<String> temp = new TreeSet<>(Arrays.asList(text));
 	

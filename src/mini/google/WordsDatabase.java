@@ -3,17 +3,26 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package mini.google;
+
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
  * @author Martin
  */
-public class Database extends Object {
+public class WordsDatabase extends Database{
     
     
     
+    void add(Map<String, Set<String>> document){
+        
+    }
     
-//    public void addToIndex();
-//    public void addToWords();
+//    Set<String> getDocument(Set<String> query){
+//        
+//    }
 }
