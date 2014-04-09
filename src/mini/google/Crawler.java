@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
@@ -19,20 +20,22 @@ import java.util.Set;
  */
 public class Crawler {
 
-    private String initUrl;
+
     private Queue<String> linksToCrawl;
-    private Map<String, ArrayList<String>>  linksIndex ;
+    private Map<String, ArrayList<String>>  indexedMap;
     private int counter;
     private int maxPages;
     private Database database;
+    private Set<String> keyWords;
 
     public Crawler(String initUrl, int maxPages, Database database) {
 	this.linksToCrawl =  new LinkedList();
-	this.initUrl = initUrl;
+	this.linksToCrawl.add(initUrl);
 	this.maxPages = maxPages;
 	this.counter = 0;
 	this.database = database;
-	this.linksIndex = new HashMap();
+	this.indexedMap = new HashMap();
+	this.keyWords = new TreeSet<String>();
     }
     /* 
      * @desc Starts crawling
@@ -40,14 +43,14 @@ public class Crawler {
 
     public void crawl() throws IOException {
 
-	String url = this.initUrl;
-
+	String url = this.getNextUrl();
+	
 	while (url != null) {
-
+	 
 	    Spider spider = new Spider(url);
 	    ArrayList<String> links = spider.getLinks();
 	    Set<String> keyWords = spider.getKeyWords();
-
+	  
 	    this.saveKeyWords(url, keyWords);
 	    try{
 		this.addToIndex(url, links);
@@ -55,8 +58,14 @@ public class Crawler {
 		System.out.println(ex);
 		System.exit(1);
 	    }
+//	    for(String word : this.keyWords){
+//		System.out.println(word + " ");
+//	    }
+	    
+	    this.addToQueue(links);
 	    url = this.getNextUrl();
 	}
+	  System.out.println("pocet slov je: "+ this.keyWords.size());
 
     }
 
@@ -65,14 +74,17 @@ public class Crawler {
      */
     protected void addToIndex(String url, ArrayList<String> links)throws Exception{
 	
-	if(this.linksIndex.containsKey(url)){
+	if(this.indexedMap.containsKey(url)){
 	    throw new Exception("Trying to save links for page, that was already crawled");
 	}
 	
-	this.linksIndex.put(url, links);// saves url and links to the index
+	this.indexedMap.put(url, links);// saves url and links to the index
+	
+    }
+    protected void addToQueue(ArrayList<String> links){
 	
 	for(String link : links){
-	    if(this.linksIndex.containsKey(link)) { // If we have link in the index, it has been crawled so we don't put it into the queue
+	    if(this.indexedMap.containsKey(link) || this.linksToCrawl.contains(link)) { // If we have link in the index, it has been crawled so we don't put it into the queue
 		continue;
 	    }
 	    this.linksToCrawl.add(link); 
@@ -88,13 +100,13 @@ public class Crawler {
 	}
 
 	this.counter++; // going to crawl another site
-	return this.linksToCrawl.poll(); 
+	return this.linksToCrawl.poll();
     }
     
 
     
     protected void saveKeyWords(String url, Set<String> keyWords){
-	
+	this.keyWords.addAll(keyWords);
     }
 
 }

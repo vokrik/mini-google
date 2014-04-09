@@ -9,6 +9,10 @@ package mini.google;
  *
  * @author Martin
  */
-public class Database {
+public class Database extends Object {
     
+    
+    
+//    public void addToIndex();
+//    public void addToWords();
 }
