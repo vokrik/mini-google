@@ -13,7 +13,5 @@ public class Database extends Object {
     
     
     
-    
-//    public void addToIndex();
-//    public void addToWords();
+
 }

@@ -6,7 +6,10 @@
 
 package mini.google;
 
-import java.lang.reflect.Array;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -20,7 +23,22 @@ public class PageRankDatabase extends Database {
         
     }
     
-//    Array sort(Set<String> documents){
-//        
-//    }
+    Map<String, Set<String>> reverseIndex(Map<String, Set<String>> index){
+      Set<String> keys = index.keySet();
+      Map<String, Set<String>> reversedIndex = new HashMap<>();
+      for(String key : keys){// Prepare reversed index
+            reversedIndex.put(key, new HashSet<>());
+        }
+      for(String key : keys){// Reverse index
+         Set<String> values = index.get(key);
+         for(String value : values){
+             if(reversedIndex.containsKey(value)){
+             reversedIndex.get(value).add(key);
+                
+             }
+         }
+        }
+      
+      return reversedIndex;
+    }
 }

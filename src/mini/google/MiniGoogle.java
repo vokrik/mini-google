@@ -18,11 +18,13 @@ public class MiniGoogle {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
-	Database db = new Database();
-	Crawler c = new Crawler("https://cs.wikipedia.org/wiki/Hlavn%C3%AD_strana", 2, db);
-	c.crawl();
-		
-    }
-    
-}
 
+        Database db = new Database();
+        Crawler c = new Crawler(args[0], Integer.parseInt(args[1]), db);
+        c.crawl();
+
+
+
+    }
+
+}
