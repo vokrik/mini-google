@@ -19,11 +19,14 @@ public class MiniGoogle {
      */
     public static void main(String[] args) throws IOException {
 
-        Database db = new Database();
-        Crawler c = new Crawler(args[0], Integer.parseInt(args[1]), db);
-        c.crawl();
-
-
+//        Crawler c = new Crawler("https://cs.wikipedia.org/wiki/Hlavní_strana", "/wiki/", 100);
+//        c.crawl();
+//        c.persist();
+        
+        PageRank pr = new PageRank();
+        pr.init(); // naplni tabulku seznamem url a jeich inicialiyacniho pageranku        
+        pr.count(50);        
+        pr.persist();
 
     }
 

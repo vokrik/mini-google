@@ -20,24 +20,49 @@ import java.util.TreeSet;
  */
 public class Crawler {
 
+    /**
+     * @var Queue of links we got by crawling ready to be crawled
+     */
     private Queue<String> linksToCrawl;
+    /**
+     * @var Array, where the key is URL of site we crawled and value is all the
+     * links, which the site contained
+     */
     private Map<String, Set<String>> indexedMap;
+
+    /**
+     * @var Counts how many pages we've already crawled
+     */
     private int counter;
+    /**
+     * @var Says how many pages should we crawl
+     */
     private int maxPages;
-    private Database database;
+    /**
+     * @var Array, where key is the URL of a site and value is all the words it
+     * contains
+     */
     private Map<String, Set<String>> keyWords;
 
-    public Crawler(String initUrl, int maxPages, Database database) {
+    /**
+     * @var Keeps the crawler on the track and restricts it to go to wrong URLs
+     */
+    private final String allowedPath;
+
+    public Crawler(String initUrl, String allowedPath, int maxPages) {
+        this.allowedPath = allowedPath;
         this.linksToCrawl = new LinkedList();
         this.linksToCrawl.add(initUrl);
         this.maxPages = maxPages;
         this.counter = 0;
-        this.database = database;
         this.indexedMap = new HashMap();
         this.keyWords = new HashMap();
     }
-    /* 
-     * @desc Starts crawling
+
+    /**
+     * @desc Takes first link in the linksToCrawl and saves its contents into
+     * linksToCrawl, keyWords and indexedMap. It ends when ammount of maxPages
+     * was crawled.
      */
 
     public void crawl() throws IOException {
@@ -46,7 +71,7 @@ public class Crawler {
 
         while (url != null) {
 
-            Spider spider = new Spider(url);
+            Spider spider = new Spider(url, this.allowedPath);
             Set<String> links = spider.getLinks();
             Set<String> keyWords = spider.getKeyWords();
 
@@ -57,28 +82,22 @@ public class Crawler {
                 System.out.println(ex);
                 System.exit(1);
             }
-//	    for(String word : keyWords){
-//		System.out.println(word + " ");
-//	    }
 
             this.addToQueue(links);
 
             url = this.getNextUrl();
         }
+
         for (Map.Entry<String, Set<String>> entry : this.keyWords.entrySet()) {
             System.out.println("pocet slov pro " + entry.getKey()
                     + " je: " + entry.getValue().size());
 
         }
 
-        for (String word : this.keyWords.get("https://cs.wikipedia.org/wiki/Hlavn%C3%AD_strana")) {
-            System.out.println(word);
-        }
-
     }
 
-    /*
-     *  PĹ™idĂˇ do fronty links a uloĹľĂ­ do indexu [][] url a links;
+    /**
+     * @desc Saves all the outlinks that the page contains into indexedMap
      */
     protected void addToIndex(String url, Set<String> links) throws Exception {
 
@@ -90,6 +109,9 @@ public class Crawler {
 
     }
 
+    /**
+     * @desc Adds links to the urlsToCrawl
+     */
     protected void addToQueue(Set<String> links) {
 
         for (String link : links) {
@@ -100,11 +122,11 @@ public class Crawler {
         }
     }
 
-    /*
-     * Pokud counter < maxPages vratĂ­ url z fronty, jinak NULL
+    /**
+     * @return url to be crawled, NULL if limit is reached or the queue is empty
      */
     protected String getNextUrl() {
-        if (counter > maxPages) {
+        if (counter >=  maxPages) {
             return null;
         }
 
@@ -114,6 +136,28 @@ public class Crawler {
 
     protected void saveKeyWords(String url, Set<String> keyWords) {
         this.keyWords.put(url, keyWords);
+    }
+
+    /**
+     * @desc Saves everything from the memmory into the database
+     */
+    public void persist() {
+
+        // persist url to url
+        for (Map.Entry<String, Set<String>> entry : this.indexedMap.entrySet()) {
+            for (String url : entry.getValue()) {
+                if (this.indexedMap.containsKey(url)) {
+                    DAO.getInstance().saveUrlUrl(entry.getKey(), url);
+                }
+            }
+        }
+
+        // persist url to keyword
+        for (Map.Entry<String, Set<String>> entry : this.keyWords.entrySet()) {
+            for (String word : entry.getValue()) {
+                DAO.getInstance().saveUrlWord(entry.getKey(), word);
+            }
+        }
     }
 
 }
