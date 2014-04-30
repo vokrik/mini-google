@@ -18,14 +18,14 @@ public class MiniGoogle {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
-
-//        Crawler c = new Crawler("https://cs.wikipedia.org/wiki/Hlavní_strana", "/wiki/", 100);
-//        c.crawl();
-//        c.persist();
+//
+        Crawler c = new Crawler("https://cs.wikipedia.org/wiki/Hlavn%C3%AD_strana", "/wiki/", 165);
+        c.crawl();
+        c.persist();
         
         PageRank pr = new PageRank();
         pr.init(); // naplni tabulku seznamem url a jeich inicialiyacniho pageranku        
-        pr.count(50);        
+        pr.count(10);        
         pr.persist();
 
     }

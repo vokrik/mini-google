@@ -44,6 +44,8 @@ public class Crawler {
      */
     private Map<String, Set<String>> keyWords;
 
+    private Map<String, String> titles;
+
     /**
      * @var Keeps the crawler on the track and restricts it to go to wrong URLs
      */
@@ -57,6 +59,7 @@ public class Crawler {
         this.counter = 0;
         this.indexedMap = new HashMap();
         this.keyWords = new HashMap();
+        this.titles = new HashMap();
     }
 
     /**
@@ -64,7 +67,6 @@ public class Crawler {
      * linksToCrawl, keyWords and indexedMap. It ends when ammount of maxPages
      * was crawled.
      */
-
     public void crawl() throws IOException {
 
         String url = this.getNextUrl();
@@ -74,7 +76,7 @@ public class Crawler {
             Spider spider = new Spider(url, this.allowedPath);
             Set<String> links = spider.getLinks();
             Set<String> keyWords = spider.getKeyWords();
-
+            this.titles.put(url, spider.getHeading());
             this.saveKeyWords(url, keyWords);
             try {
                 this.addToIndex(url, links);
@@ -86,12 +88,6 @@ public class Crawler {
             this.addToQueue(links);
 
             url = this.getNextUrl();
-        }
-
-        for (Map.Entry<String, Set<String>> entry : this.keyWords.entrySet()) {
-            System.out.println("pocet slov pro " + entry.getKey()
-                    + " je: " + entry.getValue().size());
-
         }
 
     }
@@ -126,7 +122,7 @@ public class Crawler {
      * @return url to be crawled, NULL if limit is reached or the queue is empty
      */
     protected String getNextUrl() {
-        if (counter >=  maxPages) {
+        if (counter >= maxPages) {
             return null;
         }
 
@@ -157,6 +153,13 @@ public class Crawler {
             for (String word : entry.getValue()) {
                 DAO.getInstance().saveUrlWord(entry.getKey(), word);
             }
+        }
+
+        //persist url to tile
+        for (Map.Entry<String, String> entry : this.titles.entrySet()) {
+          
+                DAO.getInstance().saveTitle(entry.getKey(), entry.getValue());
+         
         }
     }
 

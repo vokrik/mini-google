@@ -38,6 +38,7 @@ public class DAO {
     private final PreparedStatement getUrlsPS;
     private final PreparedStatement savePageRankPS;
     private final PreparedStatement saveIterationPS;
+    private final PreparedStatement saveTitlePS;
 
     public static DAO getInstance() {
         if (instance == null) {
@@ -87,6 +88,10 @@ public class DAO {
                 + "VALUES (?, ?, ?)"
         );
 
+        saveTitlePS = connection.prepareStatement(
+                "INSERT INTO urls_titles (url, title) "
+                + "VALUES (?, ?)"
+        );
     }
 
     public void saveUrlWord(String url, String word) {
@@ -171,4 +176,15 @@ public class DAO {
         }
     }
 
+    public void saveTitle(String url, String title){
+      try {
+            saveTitlePS.setString(1, url);
+            saveTitlePS.setString(2, title);
+            saveTitlePS.execute();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(DAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

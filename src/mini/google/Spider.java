@@ -24,6 +24,7 @@ public final class Spider {
 
     private Set<String> links;
     private final String text;
+    private final String heading;
     private static String initUrl = "https://cs.wikipedia.org";
     private static String allowedPath;
     final static int TIME_OUT = 10; // time out to download page in seconds
@@ -31,10 +32,17 @@ public final class Spider {
     public Spider(String url, String allowedPath) throws IOException {
         this.allowedPath = allowedPath;
         Document doc = this.download(url);
+        this.heading = this.parseHeading(doc);
+        System.out.println(heading);
         this.parseLinks(doc);
         this.text = this.parseText(doc);
     }
 
+    
+    protected String parseHeading(Document doc){
+        return doc.select("#firstHeading > span").text();
+    }
+    
     protected Document download(String url) throws IOException {
         System.out.println(url);
         return Jsoup.connect(url).timeout(TIME_OUT * 1000).get();
@@ -68,6 +76,11 @@ public final class Spider {
     protected String getText() {
         return text;
     }
+
+    public String getHeading() {
+        return heading;
+    }
+    
 
     public Set<String> getKeyWords() {
         String[] text = this.text.replaceAll("[?.&,; %=·(){}“|\\/…•„\":]", " ").toLowerCase().split(" ");;
