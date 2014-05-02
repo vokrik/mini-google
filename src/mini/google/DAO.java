@@ -39,6 +39,8 @@ public class DAO {
     private final PreparedStatement savePageRankPS;
     private final PreparedStatement saveIterationPS;
     private final PreparedStatement saveTitlePS;
+    private final PreparedStatement getDeviationsPS;
+    private final PreparedStatement saveDeviationsPS;
 
     public static DAO getInstance() {
         if (instance == null) {
@@ -65,77 +67,88 @@ public class DAO {
         connection = DriverManager.getConnection(url, LOGIN, PASSWORD);
 
         saveUrlsWordsPS = connection.prepareStatement(
-                "INSERT INTO urls_words (url, word) "
+                "INSERT INTO urls_words? (url, word) "
                 + "VALUES (?, ?)"
         );
         saveUrlsUrlsPS = connection.prepareStatement(
-                "INSERT INTO urls_urls (url1, url2) "
+                "INSERT INTO urls_urls? (url1, url2) "
                 + "VALUES (?, ?)"
         );
         getAllUrlsPS = connection.prepareStatement(
-                "SELECT DISTINCT url1 FROM urls_urls"
+                "SELECT DISTINCT url1 FROM urls_urls?"
         );
         getUrlsPS = connection.prepareStatement(
-                "SELECT DISTINCT url2 FROM urls_urls"
+                "SELECT DISTINCT url2 FROM urls_urls?"
                 + " WHERE url1=?"
         );
         savePageRankPS = connection.prepareStatement(
-                "INSERT INTO pagerank (url, pagerank) "
+                "INSERT INTO pagerank? (url, pagerank) "
                 + "VALUES (?, ?)"
         );
         saveIterationPS = connection.prepareStatement(
-                "INSERT INTO iterations (url, pagerank, iteration) "
+                "INSERT INTO iterations? (url, pagerank, iteration) "
                 + "VALUES (?, ?, ?)"
         );
 
         saveTitlePS = connection.prepareStatement(
-                "INSERT INTO urls_titles (url, title) "
+                "INSERT INTO urls_titles? (url, title) "
                 + "VALUES (?, ?)"
         );
+        getDeviationsPS = connection.prepareStatement(
+                "SELECT SUM(ABS(l.pagerank-p.pagerank)) as deviation, l.iteration as iteration FROM iterations? l JOIN iterations? p ON l.url = p.url AND\n" +
+"l.iteration = p.iteration +1 GROUP BY iteration"
+        );
+        
+        saveDeviationsPS = connection.prepareStatement(
+        "INSERT INTO deviations? (iteration, deviation) VALUES (?,?)"
+        );
+                
+                
     }
 
-    public void saveUrlWord(String url, String word) {
+    public void saveUrlWord(int tableNum, String url, String word) {
         try {
             System.out.println("Url: " + url + " Contains: " + word);
-            saveUrlsWordsPS.setString(1, url);
-
-            saveUrlsWordsPS.setString(2, word);
+            saveUrlsWordsPS.setInt(1, tableNum);
+            saveUrlsWordsPS.setString(2, url);
+            saveUrlsWordsPS.setString(3, word);
             saveUrlsWordsPS.execute();
         } catch (SQLException ex) {
             Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public void saveIteration(int iteration, Map<String, Double> pageRanks) {
+    public void saveIteration(int tableNum, int iteration, Map<String, Double> pageRanks) {
 
         for (String url : pageRanks.keySet()) {
             try {
-                saveIterationPS.setString(1, url);
-                saveIterationPS.setDouble(2, pageRanks.get(url));
-                saveIterationPS.setInt(3, iteration);
+                saveIterationPS.setInt(1, tableNum);
+                saveIterationPS.setString(2, url);
+                saveIterationPS.setDouble(3, pageRanks.get(url));
+                saveIterationPS.setInt(4, iteration);
                 saveIterationPS.execute();
-
             } catch (SQLException ex) {
                 Logger.getLogger(DAO.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
 
-    public void saveUrlUrl(String url1, String url2) {
+    public void saveUrlUrl(int tableNum, String url1, String url2) {
         try {
-            saveUrlsUrlsPS.setString(1, url1);
-            saveUrlsUrlsPS.setString(2, url2);
+            saveUrlsUrlsPS.setInt(1, tableNum);
+            saveUrlsUrlsPS.setString(2, url1);
+            saveUrlsUrlsPS.setString(3, url2);
             saveUrlsUrlsPS.execute();
-
         } catch (SQLException ex) {
             Logger.getLogger(DAO.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public Set<String> getAllUrls() {
+    public Set<String> getAllUrls(int tableNum) {
         Set<String> listOfUrls = new HashSet<>();
         try {
+            getAllUrlsPS.setInt(1, tableNum);
             ResultSet resultSet = getAllUrlsPS.executeQuery();
             while (resultSet.next()) {
                 listOfUrls.add(resultSet.getString(1));
@@ -148,14 +161,14 @@ public class DAO {
         return listOfUrls;
     }
 
-    public Set<String> getUrlsFor(String url2) {
+    public Set<String> getUrlsFor(int tableNum, String url2) {
         Set<String> listOfUrls = new HashSet<>();
         try {
-            getUrlsPS.setString(1, url2);
+            getUrlsPS.setInt(1, tableNum);
+            getUrlsPS.setString(2, url2);
             ResultSet resultSet = getUrlsPS.executeQuery();
             while (resultSet.next()) {
                 listOfUrls.add(resultSet.getString(1));
-
             }
         } catch (SQLException ex) {
             Logger.getLogger(DAO.class
@@ -164,25 +177,42 @@ public class DAO {
         return listOfUrls;
     }
 
-    public void savePageRank(String url, double pagerank) {
+    public void savePageRank(int tableNum, String url, double pagerank) {
         try {
-            savePageRankPS.setString(1, url);
-            savePageRankPS.setDouble(2, pagerank);
+            savePageRankPS.setInt(1, tableNum);
+            savePageRankPS.setString(2, url);
+            savePageRankPS.setDouble(3, pagerank);
             savePageRankPS.execute();
-
         } catch (SQLException ex) {
             Logger.getLogger(DAO.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public void saveTitle(String url, String title){
-      try {
-            saveTitlePS.setString(1, url);
-            saveTitlePS.setString(2, title);
+    public void saveTitle(int tableNum, String url, String title) {
+        try {
+            saveTitlePS.setInt(1, tableNum);
+            saveTitlePS.setString(2, url);
+            saveTitlePS.setString(3, title);
             saveTitlePS.execute();
-
         } catch (SQLException ex) {
+            Logger.getLogger(DAO.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void countDeviations(int tableNum){
+        try{
+            getDeviationsPS.setInt(1, tableNum);
+            getDeviationsPS.setInt(2, tableNum);
+              ResultSet resultSet = getDeviationsPS.executeQuery();
+              while(resultSet.next()){
+                  saveDeviationsPS.setInt(1, tableNum);
+                  saveDeviationsPS.setInt(2, resultSet.getInt("iteration"));
+                  saveDeviationsPS.setDouble(3, resultSet.getDouble("deviation"));
+                  saveDeviationsPS.execute();
+              }
+        }catch (SQLException ex) {
             Logger.getLogger(DAO.class
                     .getName()).log(Level.SEVERE, null, ex);
         }

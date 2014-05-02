@@ -35,6 +35,10 @@ public class Crawler {
      */
     private int counter;
     /**
+     * @var Table name postfix
+     */
+    private int tableNumber;
+    /**
      * @var Says how many pages should we crawl
      */
     private int maxPages;
@@ -51,7 +55,8 @@ public class Crawler {
      */
     private final String allowedPath;
 
-    public Crawler(String initUrl, String allowedPath, int maxPages) {
+    public Crawler(String initUrl, String allowedPath, int maxPages, int tableNumber) {
+        this.tableNumber = tableNumber;
         this.allowedPath = allowedPath;
         this.linksToCrawl = new LinkedList();
         this.linksToCrawl.add(initUrl);
@@ -143,7 +148,7 @@ public class Crawler {
         for (Map.Entry<String, Set<String>> entry : this.indexedMap.entrySet()) {
             for (String url : entry.getValue()) {
                 if (this.indexedMap.containsKey(url)) {
-                    DAO.getInstance().saveUrlUrl(entry.getKey(), url);
+                    DAO.getInstance().saveUrlUrl(this.tableNumber, entry.getKey(), url);
                 }
             }
         }
@@ -151,14 +156,14 @@ public class Crawler {
         // persist url to keyword
         for (Map.Entry<String, Set<String>> entry : this.keyWords.entrySet()) {
             for (String word : entry.getValue()) {
-                DAO.getInstance().saveUrlWord(entry.getKey(), word);
+                DAO.getInstance().saveUrlWord(this.tableNumber, entry.getKey(), word);
             }
         }
 
         //persist url to tile
         for (Map.Entry<String, String> entry : this.titles.entrySet()) {
           
-                DAO.getInstance().saveTitle(entry.getKey(), entry.getValue());
+                DAO.getInstance().saveTitle(this.tableNumber, entry.getKey(), entry.getValue());
          
         }
     }

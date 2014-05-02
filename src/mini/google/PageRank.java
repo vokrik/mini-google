@@ -21,8 +21,12 @@ public class PageRank {
     protected Map<String, Set<String>> backLinks;
     protected Map<String, Double> urlPageRank;
     protected int urlsCount;
+    private int tableFromNumber;
+    private int tableToNumber;
 
-    PageRank() {
+    PageRank(int tableFromNumber, int tableToNumber) {
+        this.tableFromNumber = tableFromNumber;
+        this.tableToNumber = tableToNumber;
         this.urlPageRank = new HashMap<>();
         this.getUrlLinks();
         this.getUrlBackLinks();
@@ -32,26 +36,26 @@ public class PageRank {
     protected void getUrlLinks() {
         this.links = new HashMap();
 
-        Set<String> urls = DAO.getInstance().getAllUrls();
+        Set<String> urls = DAO.getInstance().getAllUrls(this.tableFromNumber);
         for (String url : urls) {
-            this.links.put(url, DAO.getInstance().getUrlsFor(url));
+            this.links.put(url, DAO.getInstance().getUrlsFor(this.tableFromNumber, url));
         }
     }
 
     protected void getUrlBackLinks() {
         Set<String> keys = this.links.keySet();
-      this.backLinks = new HashMap<>();
-      for(String key : keys){// Prepare reversed index
-            this.backLinks.put(key, new HashSet<>());
+        this.backLinks = new HashMap<>();
+        for (String key : keys) {// Prepare reversed index
+            this.backLinks.put(key, new HashSet());
         }
-      for(String key : keys){// Reverse index
-         Set<String> values = this.links.get(key);
-         for(String value : values){
-             if(backLinks.containsKey(value)){
-             backLinks.get(value).add(key);
-                
-             }
-         }
+        for (String key : keys) {// Reverse index
+            Set<String> values = this.links.get(key);
+            for (String value : values) {
+                if (backLinks.containsKey(value)) {
+                    backLinks.get(value).add(key);
+
+                }
+            }
         }
     }
 
@@ -66,11 +70,10 @@ public class PageRank {
 
     }
 
-    public void count(int count) {
+    public void count(int count, double alpha) {
 
         for (int i = 0; i < count; i++) {
-             DAO.getInstance().saveIteration(i, this.urlPageRank);
-            
+            DAO.getInstance().saveIteration(this.tableToNumber, i, this.urlPageRank);
 
             Map<String, Double> nextIteration = new HashMap();
 
@@ -81,7 +84,9 @@ public class PageRank {
             for (String url : this.links.keySet()) {
                 for (String ref : this.backLinks.get(url)) {
                     double previousValue = nextIteration.get(url);
-                    nextIteration.put(url, previousValue + this.urlPageRank.get(ref) / this.links.get(ref).size());
+                    double H = previousValue + this.urlPageRank.get(ref) / this.links.get(ref).size();
+                    double PR = alpha * H + (1.0 - alpha) * 1.0 / (double) this.urlsCount;  // make google matrix
+                    nextIteration.put(url, PR);
                 }
 
             }
@@ -95,8 +100,10 @@ public class PageRank {
     public void persist() {
 
         for (String url : this.urlPageRank.keySet()) {
-            DAO.getInstance().savePageRank(url, this.urlPageRank.get(url));
+            DAO.getInstance().savePageRank(this.tableToNumber, url, this.urlPageRank.get(url));
         }
+        System.out.println("Counting deviations for table" + this.tableToNumber);
+        DAO.getInstance().countDeviations(this.tableToNumber);
 
     }
 
